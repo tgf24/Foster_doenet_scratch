@@ -6,6 +6,8 @@ library(anytime)
 shinyServer(function(input, output) {
   source("./functions.R")
   
+  # I SHOULD USE COMMENTS!!!!!
+  
   if (!is.null(renderText(getQueryString()[["data"]]))) {
     df <- eventReactive(input$update, {
       stream_in(file(
