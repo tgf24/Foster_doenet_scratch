@@ -8,6 +8,19 @@ shinyServer(function(input, output) {
   
   # I SHOULD USE COMMENTS!!!!!
   
+  
+  # What this code is doing is pulling in the data
+  # getQueryString() is a function that takes a query string and turns it into
+  # a list, which allows us to find the "data" item of that list.
+  # By default it pulls the query string from the app environment (?)
+  # renderText turns it that list into a string and then checks if it is null
+  # This is a check to make sure we are in fact looking for data that exists
+
+  #Stream_in unpacks the json file we get from the URL into a 1 by 3 dataframe 
+  #First element is a boolean that tells if it was successful or not
+  #Second element is a message (typically empty right now)
+  #Third is the list that contains the event log
+  #df contains this 1 by 3 frame at the end of this block
   if (!is.null(renderText(getQueryString()[["data"]]))) {
     df <- eventReactive(input$update, {
       stream_in(file(
@@ -27,21 +40,31 @@ shinyServer(function(input, output) {
     #   )
     # })
     
+    #This block pulls out the events log, which is a dataframe, within a 
+    # 1 element list within a 1 by 3 dataframe. So df is the frame,
+    # events is an named column of df, which contains one element, which is a 
+    # dataframe containing the events log, which we are then assigning to a local
+    # variable called events. Note the difference between the events column of df
+    # and our local events object (even though they are essentially the same data)
+    
     events <- reactive({
       df()$events[[1]]
     })
     
-    
+  
+    # Takes our events and cleans them up and adds some helpful columns
+    # See file functions.R for more information.
     cleaned <- reactive({
       clean_events(events())
     })
     
-    # cleaned data
+    # creates a table of cleaned data
     output$cleaned_data <- renderDataTable(cleaned())
     
-    # raw data
+    # creates a table of raw data
     output$raw <- renderDataTable(events())
     
+    #creates an output text detailing how many students in the data set
     output$num_students <-
       renderText(paste0(
         "There is/are ",
@@ -49,13 +72,15 @@ shinyServer(function(input, output) {
         " student(s)"
       ))
     
+    #creates an output text detailing how many different doenet experiments 
+    #are represented in this set.
     output$num_doenetIds <-
       renderText(paste0(
         "There is/are ",
         n_distinct(events()$doenetId, na.rm = TRUE),
         " doenetId(s)"
       ))
-    
+    #creates an output text detailing how many pages are included in this dataset
     output$num_pages <-
       renderText(paste0(
         "There is/are ",
